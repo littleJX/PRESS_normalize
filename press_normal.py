@@ -54,7 +54,7 @@ def gruping(x,y):
 			groupnum=groupnum+1
 		group.append(groupnum)
 
-	print 'groupnum :', groupnum
+	# print 'groupnum :', groupnum
 	# print group
 	return groupnum,group
 
@@ -96,17 +96,51 @@ normal_table = make_normal_table(max_s,40)
 print_table("Normalizing Table", normal_table)
 
 
-#[PLOT]#############################################
-plt.subplot(1, 2, 1)
-plt.scatter(x,y,s,edgecolors='none')
-plt.title('scattering')
-plt.gca().invert_yaxis()
-plt.grid()
+##################################################################
+avg_x=[]
+avg_y=[]
+for i in range(1,groupnum):
+	avg_x.append(np.mean(x[group.index(i):group.index(i+1)]))
+	avg_y.append(np.mean(y[group.index(i):group.index(i+1)]))
+avg_x.append(np.mean(x[group.index(groupnum):len(group)-1]))
+avg_y.append(np.mean(y[group.index(groupnum):len(group)-1]))
 
-plt.subplot(1, 2, 2)
-m =  np.array(max_s).reshape((y_grid_num, x_grid_num))
-plt.imshow(m,interpolation='nearest')
-plt.tight_layout()
-plt.title("max image")
-plt.colorbar()
-plt.show()
+for i in range(len(avg_x)):
+	if avg_y[i+1]-avg_y[i] > sep_thd:
+		nCol = i+1
+		nRow=groupnum/nCol
+		break
+
+print "X_NUM: ",nCol
+print "Y_NUM: ",nRow
+
+x_mat = np.array(avg_x).reshape((nRow, nCol))
+y_mat = np.array(avg_y).reshape((nRow, nCol))
+
+x_tic=[]
+y_tic=[]
+
+for i in range(nCol):
+	x_tic.append(int(np.mean([row[i] for row in x_mat])))
+
+for i in range(nRow):
+	y_tic.append(int(np.mean(y_mat[i])))
+
+print "x_tic: ",x_tic
+print "y_tic: ", y_tic
+
+
+#[PLOT]#############################################
+# plt.subplot(1, 2, 1)
+# plt.scatter(x,y,s,edgecolors='none')
+# plt.title('scattering')
+# plt.gca().invert_yaxis()
+# plt.grid()
+
+# plt.subplot(1, 2, 2)
+# m =  np.array(max_s).reshape((y_grid_num, x_grid_num))
+# plt.imshow(m,interpolation='nearest')
+# plt.tight_layout()
+# plt.title("max image")
+# plt.colorbar()
+# plt.show()
