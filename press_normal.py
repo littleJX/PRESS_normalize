@@ -15,9 +15,6 @@ parser_x = "0\]\s+(\d+),\s+\d+,\s+\d+,"
 parser_y = "0\]\s+\d+,\s+(\d+),\s+\d+,"
 parser_s = "0\]\s+\d+,\s+\d+,\s+(\d+),"
 
-x_grid_num =10
-y_grid_num =19
-
 #######################################################
 
 def distance(x1,y1,x2,y2):
@@ -67,12 +64,24 @@ def find_MaxPress(s,groupnum,group):
 	
 	return max_s
 
-def print_table(name, table):
+def find_AvgPoint(x,y,groupnum,group):
+	avg_x=[]
+	avg_y=[]
+	for i in range(1,groupnum):
+		avg_x.append(np.mean(x[group.index(i):group.index(i+1)]))
+		avg_y.append(np.mean(y[group.index(i):group.index(i+1)]))
+	avg_x.append(np.mean(x[group.index(groupnum):len(group)-1]))
+	avg_y.append(np.mean(y[group.index(groupnum):len(group)-1]))
+
+	return avg_x, avg_y
+
+
+def print_table(name, table, nCol, nRow):
 	print "["+name+"]"
-	for j in range(y_grid_num):
+	for j in range(nRow):
 		str_tmp=""
-		for i in range(x_grid_num):
-			str_tmp = str_tmp + str(table[i+j*x_grid_num])+"," 
+		for i in range(nCol):
+			str_tmp = str_tmp + str(table[i+j*nCol])+"," 
 		print str_tmp
 	print ''
 
@@ -83,64 +92,65 @@ def make_normal_table(table,target):
 		normal_table.append(val)
 	return normal_table
 
-#[MAIN]##############################
+def auto_reshape(avg_x,avg_y,groupnum):
+	for i in range(len(avg_x)):
+		if avg_y[i+1]-avg_y[i] > sep_thd:
+			nCol = i+1
+			nRow=groupnum/nCol
+			break
 
+	print "X_NUM: ",nCol
+	print "Y_NUM: ",nRow
+
+	x_mat = np.array(avg_x).reshape((nRow, nCol))
+	y_mat = np.array(avg_y).reshape((nRow, nCol))
+
+	return x_mat, y_mat, nCol, nRow
+
+def print_XYtic(x_mat, y_mat, nCol, nRow):
+	
+	x_tic=[]
+	y_tic=[]
+
+	for i in range(nCol):
+		x_tic.append(int(np.mean([row[i] for row in x_mat])))
+
+	for i in range(nRow):
+		y_tic.append(int(np.mean(y_mat[i])))
+
+	print "x_tic: ", x_tic
+	print "y_tic: ", y_tic
+	print 
+
+def plot_LogImg(x,y,s,max_s,nRow, nCol):
+	plt.subplot(1, 2, 1)
+	plt.scatter(x,y,s,edgecolors='none')
+	plt.title('scattering')
+	plt.gca().invert_yaxis()
+	plt.grid()
+
+	plt.subplot(1, 2, 2)
+	m =  np.array(max_s).reshape((nRow, nCol))
+	plt.imshow(m,interpolation='nearest')
+	plt.tight_layout()
+	plt.title("max image")
+	plt.colorbar()
+	plt.show()
+
+#[MAIN]############################################
+
+#[DATA ANAL]############################################
 (x,y,s)=parsing(filename,parser_x,parser_y,parser_s)
 (groupnum,group)=gruping(x,y)
 max_s=find_MaxPress(s,groupnum,group)
+(avg_x, avg_y) = find_AvgPoint(x,y,groupnum,group)
+(x_mat, y_mat, nCol, nRow) = auto_reshape(avg_x,avg_y,groupnum)
 
-print_table("Max Intensity Table", max_s)
-
+#[PRINT]#############################################
+print_XYtic(x_mat, y_mat, nCol, nRow)
+print_table("Max Intensity Table", max_s, nCol, nRow)
 normal_table = make_normal_table(max_s,40)
-
-print_table("Normalizing Table", normal_table)
-
-
-##################################################################
-avg_x=[]
-avg_y=[]
-for i in range(1,groupnum):
-	avg_x.append(np.mean(x[group.index(i):group.index(i+1)]))
-	avg_y.append(np.mean(y[group.index(i):group.index(i+1)]))
-avg_x.append(np.mean(x[group.index(groupnum):len(group)-1]))
-avg_y.append(np.mean(y[group.index(groupnum):len(group)-1]))
-
-for i in range(len(avg_x)):
-	if avg_y[i+1]-avg_y[i] > sep_thd:
-		nCol = i+1
-		nRow=groupnum/nCol
-		break
-
-print "X_NUM: ",nCol
-print "Y_NUM: ",nRow
-
-x_mat = np.array(avg_x).reshape((nRow, nCol))
-y_mat = np.array(avg_y).reshape((nRow, nCol))
-
-x_tic=[]
-y_tic=[]
-
-for i in range(nCol):
-	x_tic.append(int(np.mean([row[i] for row in x_mat])))
-
-for i in range(nRow):
-	y_tic.append(int(np.mean(y_mat[i])))
-
-print "x_tic: ",x_tic
-print "y_tic: ", y_tic
-
+print_table("Normalizing Table", normal_table, nCol, nRow)
 
 #[PLOT]#############################################
-# plt.subplot(1, 2, 1)
-# plt.scatter(x,y,s,edgecolors='none')
-# plt.title('scattering')
-# plt.gca().invert_yaxis()
-# plt.grid()
-
-# plt.subplot(1, 2, 2)
-# m =  np.array(max_s).reshape((y_grid_num, x_grid_num))
-# plt.imshow(m,interpolation='nearest')
-# plt.tight_layout()
-# plt.title("max image")
-# plt.colorbar()
-# plt.show()
+plot_LogImg(x,y,s,max_s,nRow, nCol)
