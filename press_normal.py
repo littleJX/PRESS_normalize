@@ -58,14 +58,27 @@ def gruping(x,y):
 	# print group
 	return groupnum,group
 
-def find_MaxPress(s,groupnum,group):
+def find_MaxPress(x,y,s,groupnum,group):
 	max_s=[]
+	max_x=[]
+	max_y=[]
 
 	for i in range(1,groupnum):
-		max_s.append(np.max(s[group.index(i):group.index(i+1)]))
-	max_s.append(np.max(s[group.index(groupnum):len(group)-1]))
+		tmp_max = np.max(s[group.index(i):group.index(i+1)])
+		max_s.append(tmp_max)
+
+		idx=s[group.index(i):group.index(i+1)].index(tmp_max)
+		max_x.append(x[group.index(i)+idx])
+		max_y.append(y[group.index(i)+idx])
+
+	tmp_max = np.max(s[group.index(groupnum):len(group)-1])
+	max_s.append(tmp_max)
+
+	idx=s[group.index(groupnum):len(group)-1].index(tmp_max)
+	max_x.append(x[group.index(groupnum)+idx])
+	max_y.append(y[group.index(groupnum)+idx])
 	
-	return max_s
+	return max_x, max_y, max_s
 
 def print_table(name, table):
 	print "["+name+"]"
@@ -87,14 +100,13 @@ def make_normal_table(table,target):
 
 (x,y,s)=parsing(filename,parser_x,parser_y,parser_s)
 (groupnum,group)=gruping(x,y)
-max_s=find_MaxPress(s,groupnum,group)
+(max_x, max_y, max_s)=find_MaxPress(x,y,s,groupnum,group)
 
 print_table("Max Intensity Table", max_s)
 
 normal_table = make_normal_table(max_s,40)
 
 print_table("Normalizing Table", normal_table)
-
 
 ##################################################################
 avg_x=[]
@@ -104,6 +116,9 @@ for i in range(1,groupnum):
 	avg_y.append(np.mean(y[group.index(i):group.index(i+1)]))
 avg_x.append(np.mean(x[group.index(groupnum):len(group)-1]))
 avg_y.append(np.mean(y[group.index(groupnum):len(group)-1]))
+
+avg_x = max_x
+avg_y = max_y
 
 for i in range(len(avg_x)):
 	if avg_y[i+1]-avg_y[i] > sep_thd:
@@ -129,18 +144,17 @@ for i in range(nRow):
 print "x_tic: ",x_tic
 print "y_tic: ", y_tic
 
-
 #[PLOT]#############################################
-# plt.subplot(1, 2, 1)
-# plt.scatter(x,y,s,edgecolors='none')
-# plt.title('scattering')
-# plt.gca().invert_yaxis()
-# plt.grid()
+plt.subplot(1, 2, 1)
+plt.scatter(x,y,s,edgecolors='none')
+plt.title('scattering')
+plt.gca().invert_yaxis()
+plt.grid()
 
-# plt.subplot(1, 2, 2)
-# m =  np.array(max_s).reshape((y_grid_num, x_grid_num))
-# plt.imshow(m,interpolation='nearest')
-# plt.tight_layout()
-# plt.title("max image")
-# plt.colorbar()
-# plt.show()
+plt.subplot(1, 2, 2)
+m =  np.array(max_s).reshape((y_grid_num, x_grid_num))
+plt.imshow(m,interpolation='nearest')
+plt.tight_layout()
+plt.title("max image")
+plt.colorbar()
+plt.show()
