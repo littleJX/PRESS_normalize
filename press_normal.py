@@ -85,6 +85,10 @@ def print_table(name, table, nCol, nRow):
 		print str_tmp
 	print ''
 
+def auto_target(max_s, pt):
+	idx=(len(max_s)*pt/100)
+	return sorted(max_s)[idx]
+	
 def make_normal_table(table,target):
 	normal_table=[]
 	for i in range(len(table)):
@@ -149,7 +153,8 @@ max_s=find_MaxPress(s,groupnum,group)
 #[PRINT]#############################################
 print_XYtic(x_mat, y_mat, nCol, nRow)
 print_table("Max Intensity Table", max_s, nCol, nRow)
-normal_table = make_normal_table(max_s,40)
+target = auto_target(max_s, 5)
+normal_table = make_normal_table(max_s,target)
 print_table("Normalizing Table", normal_table, nCol, nRow)
 
 #[PLOT]#############################################
